@@ -1,0 +1,214 @@
+Trebal TNUI P2
+
+rating.dat
+    UserID::MovieID::Rating::Timestamp
+
+    User - id entre 1-6040
+    Movie - id entre 1-3952
+    Rating - rating d'un usuari 1-5 (menys mes)
+    Timestamp - quan es va puntuar contat en segons
+
+
+    Com a minim un user ha de tenir 20 valoracions, esta filtrada
+
+
+users.dat
+    UserID::Gender::Age::Ocupation::ZipCode
+
+    Per age hi ha aquestes opcions
+
+    *  1:  "Under 18"
+	* 18:  "18-24"
+	* 25:  "25-34"
+	* 35:  "35-44"
+	* 45:  "45-49"
+	* 50:  "50-55"
+	* 56:  "56+"
+
+- **Occupation** es tria entre les següents opcions:
+
+	*  0:  "other" or not specified
+	*  1:  "academic/educator"
+	*  2:  "artist"
+	*  3:  "clerical/admin"
+	*  4:  "college/grad student"
+	*  5:  "customer service"
+	*  6:  "doctor/health care"
+	*  7:  "executive/managerial"
+	*  8:  "farmer"
+	*  9:  "homemaker"
+	* 10:  "K-12 student"
+	* 11:  "lawyer"
+	* 12:  "programmer"
+	* 13:  "retired"
+	* 14:  "sales/marketing"
+	* 15:  "scientist"
+	* 16:  "self-employed"
+	* 17:  "technician/engineer"
+	* 18:  "tradesman/craftsman"
+	* 19:  "unemployed"
+	* 20:  "writer"
+
+
+moviea.dat
+    MovieID::title::Genres
+
+    - **Genres** de les películes, que estan separats pel símbol "|" i estan seleccionats d'entre els següents:
+
+	* Action
+	* Adventure
+	* Animation
+	* Children's
+	* Comedy
+	* Crime
+	* Documentary
+	* Drama
+	* Fantasy
+	* Film-Noir
+	* Horror
+	* Musical
+	* Mystery
+	* Romance
+	* Sci-Fi
+	* Thriller
+	* War
+	* Western
+
+Algunes películes poden tenir l'ID malament degut a duplicats accidentals.
+
+**Els generes poden ser varis (Musical, Romance, ...)**
+
+Les películes s'han entrat manualment, així que poden existir altres inconsistencies.
+
+
+
+
+
+APUNTS DEL MEGRE
+
+Les columnes coincidents seran les primeres en aparteixer
+
+
+INNER JOIN i OUTTER JOIN
+
+INNER JOIN
+Nomes es fa merge de la interseccio de les dues matrius, si un valor no existeix a una 'elles es descarta
+
+OUTERJOIN
+Es fa merge, pero les columnes que
+
+
+
+-- Tot el que no es pugui emplenar per falta de dades sera especificat amb NaN
+
+
+LEFT Join (<code>how='left'</code>)
+
+    Concepte Clau: Utilitza només les claus del DataFrame Esquerre.
+
+    Com funciona? Manté totes les files del DataFrame Esquerre. Busca correspondències al DataFrame Dret.
+
+    Gestió de dades: Si una clau de l'Esquerre no té correspondència al Dret, les columnes del Dret s'ompliran amb NaN. Si una clau del Dret no existeix a l'Esquerre, es descarta.
+
+
+
+RIGHT JOIN(<code>how='right'</code>)
+
+    Concepte Clau: Utilitza només les claus del DataFrame Dret.
+
+    Com funciona? És exactament l'invers del left join. Manté totes les files del DataFrame Dret i busca correspondències a l'Esquerre.
+
+    Gestió de dades: Si una clau del Dret no té correspondència a l'Esquerre, les columnes de l'Esquerre s'ompliran amb NaN.
+
+
+
+
+EL SORT VALUE NO modifica res
+
+# Això SÍ modifica 'data' i no retorna res
+data.sort_values(by='user_id', inplace=True)
+
+# Ara 'data' està ordenada permanentment
+# Si ara feu data.head(10), veureu les 10 primeres files
+
+    Nota: No podeu fer inplace=True i un slice [:10] a la mateixa línia, ja que inplace=True fa que l'operació retorni None.
+
+
+
+
+
+## pivot table
+Es com una taula resumida del executive
+Basicamtn escuca d'alguna manera el data frame per fer lo mes concret i eficient pel calcul que es necessita
+
+L'objectiu de les pivot tables es agregar (sum, count, mean, ...)
+
+
+Funcio:
+df.pivot_table(values=None, index=None, columns=None, aggfunc='mean', fill_value=None, margins=False, dropna=True, margins_name='All', observed=<no_default>, sort=True)
+
+QUe fa cad aparametre:
+
+Per construir una taula dinàmica amb pandas.pivot_table(), heu de definir quatre components essencials:
+
+    index
+
+        Què és? La columna (o columnes) del DataFrame original que voleu utilitzar com a files a la taula resultant.
+
+    columns
+
+        Què és? La columna (o columnes) del DataFrame original que voleu utilitzar com a columnes a la taula resultant.
+
+    values
+
+        Què és? La columna (o columnes) que conté les dades numèriques que voleu calcular o agregar. Aquests seran els valors que ompliran les cel·les de la graella.
+
+    aggfunc (Funció d'Agregació)
+
+        Què és? L'operació matemàtica que s'aplicarà als values.
+
+        Molt important: Per defecte, si no l'especifiqueu, Pandas utilitzarà la mitjana ('mean'). Altres valors comuns són 'sum' (suma) o 'count' (recompte).
+
+        Exemple:
+
+Data,Regió,Producte,Vendes
+01/10,Nord,Poma,100
+01/10,Sud,Poma,150
+01/10,Nord,Taronja,80
+02/10,Nord,Poma,110
+02/10,Sud,Taronja,130
+02/10,Nord,Taronja,90
+
+
+La pregunta de negoci: "Vull veure el total de vendes (sum) per a cada Regió (index) i cada Producte (columns)."
+
+
+index = 'Regió'
+
+columns = 'Producte'
+
+values = 'Vendes'
+
+aggfunc = 'sum'
+
+
+
+Producte,Poma,Taronja
+Regió,,
+Nord,210,170
+Sud,150,130
+
+
+
+SORTING
+
+# Ordena els usuaris pel seu 'age', de més gran a més petit
+df.sort_values(by='age', ascending=False)
+
+# Ordena primer per 'country' (A-Z) i després per 'score' (més alt primer)
+df.sort_values(by=['country', 'score'], ascending=[True, False])
+
+
+
+620898630 - Pol
+637768261 - Sergio
