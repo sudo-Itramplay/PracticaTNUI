@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
 import re
+import textwrap
 from itertools import combinations
 from collections import defaultdict, Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from typing import Set
 
 # FUNCIONS INDEPENDENTS DE LA CLASSE MultinomialNB
 
@@ -63,6 +65,51 @@ def get_open_ngrams(word: str, n: int, include_boundaries: bool = True) -> set:
                     open_ngrams.add(ngram)
 
     return open_ngrams
+
+def get_sentence_open_ngrams(sentence: str, n: int, include_boundaries: bool = True) -> Set[str]:
+    """
+    Genera un conjunt d'n-grams oberts (skip-grams) per a una frase (seqüència de paraules).
+    """
+    tokens = sentence.strip().split()
+    
+    open_ngrams = set()
+
+    # 1. Generar N-grams sense boundaries (Core)
+    if len(tokens) >= n:
+        # Iterem sobre la llista de paraules, no sobre lletres
+        for ngram_tuple in combinations(tokens, n):
+            # Usem un espai per unir les paraules
+            open_ngrams.add(" ".join(ngram_tuple))
+
+    # 2. Generar boundaries
+    if include_boundaries:
+        
+        if n == 1:
+            open_ngrams.add("_")
+        
+        else:
+            first_token = tokens[0]
+            rest_of_tokens = tokens[1:]
+            
+            # Boundary Inicial: '_' + primera_paraula + (n-2 paraules de la resta)
+            if len(rest_of_tokens) >= (n - 2):
+                for combination in combinations(rest_of_tokens, n - 2):
+                    # Construcció amb espais
+                    parts = ["_", first_token] + list(combination)
+                    open_ngrams.add(" ".join(parts))
+
+            last_token = tokens[-1]
+            start_of_tokens = tokens[:-1]
+            
+            # Boundary Final: (n-2 paraules de l'inici) + última_paraula + '_'
+            if len(start_of_tokens) >= (n - 2):
+                for combination in combinations(start_of_tokens, n - 2):
+                    # Construcció amb espais
+                    parts = list(combination) + [last_token, "_"]
+                    open_ngrams.add(" ".join(parts))
+
+    return open_ngrams
+
 
 # Colisions entre paraules
 
@@ -628,6 +675,7 @@ class MultinomialNB:
         cm = confusion_matrix(y_true, y_pred, labels=self.languages)
         df_cm = pd.DataFrame(cm, index=self.languages, columns=self.languages)
         return df_cm
+    
 
     # EXPERIMENT: Recall i Precision per IDIOMA
     
@@ -712,7 +760,7 @@ class MultinomialNB:
         return pd.DataFrame(results)
 
 def man_regex():
-    text = """
+    text = r"""
             Regular expressions (regex) are patterns to match, search, and manipulate text. Below is a compact “what it does + example” summary of the core pieces you’ll use 95% of the time.  
                 ## Literal characters
                 
@@ -788,6 +836,37 @@ def man_regex():
             """
     return textwrap.dedent(text).strip()
 
+def lectura_de_dat_i_filtratge():
+    unames = ['user_id', 'gender', 'age', 'occupation', 'zip']
+    
+    users = pd.read_table('users.dat', sep='::', header=None, names=unames, engine='python') # NO ÉS un csv, i per alguna raó el . dat separa amb :: les dades, per això la comanda
+    rnames = ['user_id', 'movie_id', 'timestamp']
+    mnames = ['movie_id', 'title', 'genres']
+    movies = pd.read_table('movies.dat', sep='::', header=None, names=mnames, engine='python', encoding='latin-1')
+    
+
+    # Utilitzem extract() en lloc de findall() perquè volem el valor en una cel·la, no una llista.
+    # El regex (\d{4}) captura grups de 4 dígits.
+    # SINO seria així movie_years = movies['title'].str.findall(r'(\d{4})')
+
+    # RECORDA fer ['titol'] Crea una nova columna de dades al mateix df
+    movies['year'] = movies['title'].str.extract(r'\((\d{4})\)', expand=False)
+    
+
+    # Utilitzem la teva lògica amb l'àncora $ per assegurar que només esborrem l'any del final.
+    # strip() addicional per seguretat.
+    #movie_titles = movies['title'].str.replace(r'\s*\(\d{4}\)\s*$', '', regex=True) # El dolar asegura que sigui final de frase
+                                                                                    # \s* Elimina els espais que no hagin de ser
+    
+    movies['clean_title'] = movies['title'].str.replace(r'\s*\(\d{4}\)\s*$', '', regex=True).str.strip()
+    
+    # Apliquem la lògica de re.findall sobre la columna neta i en minúscules.
+    # Utilitzem una lambda per aplicar-ho fila per fila.
+    movies['tokens'] = movies['clean_title'].str.lower().apply(lambda x: re.findall(r'\b\w+\b', x))
+    return 
+
+
+    
 # Exemple d’ús bàsic (només si s’executa com a script)
 def class_run(path='dataset.csv'):
     model = MultinomialNB()
@@ -872,68 +951,3 @@ def class_run(path='dataset.csv'):
     print("\nTop n-grams per idioma:")
     print(top_features_df.head())
 
-"""
-Electric bugaloo
-"""
-
-"""
-    def get_confusion_matrix(self, y_true= , y_pred):
-        
-        Genera una matriu de confusió com a DataFrame de pandas.
-        Dius quins idiomes es confonen més entre ells.
-        Args:
-            y_true (array-like): Etiquetes reals.
-            y_pred (array-like): Etiquetes predites.
-        Returns:
-            pd.DataFrame: Matriu de confusió amb índex i columnes etiquetades.
-
-        
-        cm = confusion_matrix(y_true, y_pred, labels=self.languages)
-        df_cm = pd.DataFrame(cm, index=self.languages, columns=self.languages)
-        return df_cm
-
-model = do_model()
-cm_df = model.get_confusion_matrix(y_test, y_pred)
-
-"""
-
-def most_confused_language(df_cm):
-    
-    confusion_per_language = df_cm.sum(axis=1) - df_cm.values.diagonal()
-    return confusion_per_language.sort_values(ascending=False)
-
-"""
-Pot ser més confos per les poques dades que tenim, si volem algo més 
-constant, creible o simplement no dependent de la població hem de normalitzar
-"""
-def confusion_rate(df_cm):
-    normalized = df_cm.div(df_cm.sum(axis=1), axis=0)
-    confusion_rate = normalized.sum(axis=1) - normalized.values.diagonal()
-    return confusion_rate.sort_values(ascending=False)
-
-
-def compare_alphas(alphas=[0.1, 1.0, 5.0], path='dataset.csv'):
-    """
-    Entrena i avalua 3 models MultinomialNB amb diferents alphas.
-    
-    Args:
-        alphas (list): Llista de 3 valors float per al paràmetre alpha.
-        path (str): Ruta al fitxer de dades.
-    """
-    results = {}
-
-    for alpha in alphas:
-        model = MultinomialNB(alpha=alpha)
-        
-        # Fixem random_state=42 per assegurar que tots els models
-        # veuen exactament el mateix conjunt de Train i Test.
-        _, X_test, _, y_test = model.do_model(path=path, test_size=0.2, random_state=42)
-        
-        metrics = model.evaluate(X_test, y_test)
-        acc = metrics['sklearn']
-        results[alpha] = acc
-        
-        print(f"🔹 Model Alpha = {alpha:<4} | Accuracy: {acc*100:.2f}%")
-
-    best_alpha = max(results, key=results.get)
-    print(f"\nMillor Alpha: {best_alpha} amb {results[best_alpha]*100:.2f}% d'encert.")

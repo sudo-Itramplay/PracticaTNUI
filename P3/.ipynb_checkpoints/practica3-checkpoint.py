@@ -1,23 +1,3 @@
-# practica3.py
-
-
-# Què possar al .py:
-
-# - Classe Mulinomial
-
-# - Fer el info de les binomials:
-        #- Fer mètodes per extreure info:   5 bigrames que mes surtin, paraules coincidents(?), llista amb percentatges que surt cada bigrama
-
-#- Preguntar al chat com es pot modificar això
-
-#- Mirar examen anterior per afegir-hi mètodes
-
-#- Mirar què passa si dropeas idioma
-
-#- Preguntes teòriques: Què vol dir que l'angles tingui molt error? (molt simple i al ser llatina té moltes coses semblants)
-
-#- Fer mètode de give accuracy, amb diferents mètodes
-
 import numpy as np
 import pandas as pd
 import re
@@ -26,7 +6,6 @@ from collections import defaultdict, Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
-
 
 # FUNCIONS INDEPENDENTS DE LA CLASSE MultinomialNB
 
@@ -248,7 +227,6 @@ class MultinomialNB:
     
     # N-GRAMES OBERTS I PREPROCESSAT
 
-    @staticmethod
     def get_open_ngrams(word: str, n: int, include_boundaries: bool = True) -> set:
         """
         Genera un conjunt d’n-grams oberts per a una paraula.
@@ -318,7 +296,7 @@ class MultinomialNB:
 
     # CARREGA DATASET
 
-    @staticmethod
+    
     def get_text_label_from_df(path: str = 'dataset.csv'):
         """
         Llegeix dataset.csv i retorna textos i etiquetes.
@@ -537,8 +515,6 @@ class MultinomialNB:
 
 
     # ACCURACY AMB DIFERENTS MÈTODES
-
-    @staticmethod
     def accuracy_manual(y_true, y_pred) -> float:
         """
         Calcula accuracy manualment (percentatge d'encerts).
@@ -547,7 +523,6 @@ class MultinomialNB:
         y_pred = np.array(y_pred)
         return float(np.mean(y_true == y_pred))
 
-    @staticmethod
     def accuracy_sklearn(y_true, y_pred) -> float:
         """
         Calcula accuracy amb sklearn.metrics.accuracy_score.
@@ -584,7 +559,7 @@ class MultinomialNB:
             dict amb accuracy abans i després de treure l’idioma.
         """
         # 1) Entenament normal
-        X_train_full, X_test_full, y_train_full, y_test_full = self.build_pipeline(
+        X_train_full, X_test_full, y_train_full, y_test_full = self.do_model(
             path=path, n=n, test_size=test_size, random_state=random_state
         )
         res_full = self.evaluate(X_test_full, y_test_full)
@@ -653,7 +628,6 @@ class MultinomialNB:
         cm = confusion_matrix(y_true, y_pred, labels=self.languages)
         df_cm = pd.DataFrame(cm, index=self.languages, columns=self.languages)
         return df_cm
-    
 
     # EXPERIMENT: Recall i Precision per IDIOMA
     
@@ -737,6 +711,82 @@ class MultinomialNB:
             
         return pd.DataFrame(results)
 
+def man_regex():
+    text = """
+            Regular expressions (regex) are patterns to match, search, and manipulate text. Below is a compact “what it does + example” summary of the core pieces you’ll use 95% of the time.  
+                ## Literal characters
+                
+                - `abc` – Matches the exact substring “abc”.  
+                  - Example: Pattern `cat` matches “cat” in “my cat is here”.[1][2]
+                
+                ## Character classes
+                
+                - `[abc]` – Any one of `a`, `b`, or `c`.  
+                  - Example: `[cb]at` matches “cat” and “bat”.[3]
+                - `[^abc]` – Any character except `a`, `b`, or `c`.  
+                  - Example: `[^0-9]` matches any non-digit.[3]
+                - `[a-z]` – Any lowercase letter from a to z (ranges).  
+                  - Example: `[A-Z][a-z]+` matches “Hello”.[4][3]
+                - Shorthands:  
+                  - `\d` digit, `\D` non-digit.  
+                  - `\w` word char (letters, digits, `_`), `\W` non-word.  
+                  - `\s` whitespace, `\S` non-whitespace.  
+                  - Example: `\d\d/\d\d/\d{4}` matches dates like “12/03/2025”.[5][4][3]
+                
+                ## Quantifiers (how many times)
+                
+                - `a*` – 0 or more `a`.  
+                  - Example: `ba*` matches “b”, “ba”, “baaa”.[6][7][3]
+                - `a+` – 1 or more `a`.  
+                  - Example: `ba+` matches “ba”, “baaa” but not “b”.[7][6][3]
+                - `a?` – 0 or 1 `a` (optional).  
+                  - Example: `colou?r` matches “color” and “colour”.[6][7]
+                - `a{3}` – Exactly 3 `a`.  
+                  - Example: `a{3}` matches “aaa” in “baaaac”.[6][3]
+                - `a{2,4}` – Between 2 and 4 `a`.  
+                  - Example: `a{2,4}` matches “aa”, “aaa” or “aaaa”.[3][6]
+                
+                ## Anchors (positions)
+                
+                - `^` – Start of string/line.  
+                  - Example: `^Hello` matches “Hello world” but not “He said Hello”.[7][3]
+                - `$` – End of string/line.  
+                  - Example: `world$` matches “Hello world” but not “world says hi”.[7][3]
+                - `\b` – Word boundary.  
+                  - Example: `\bcat\b` matches “cat” but not “scatter”.[3]
+                
+                ## Groups and alternation
+                
+                - `(abc)` – Capturing group, treats `abc` as a unit and stores the match.  
+                  - Example: `(ab)+` matches “ab”, “abab”, “ababab”.[4][3]
+                - `(?:abc)` – Non‑capturing group (groups for logic, not for capture).  
+                  - Example: `(?:ab)+c` matches “abc”, “ababc”.[3]
+                - `a|b` – Alternation, matches `a` or `b`.  
+                  - Example: `cat|dog` matches “cat” or “dog”. [8][5]  
+                
+                ## Dot and escaping
+                
+                - `.` – Any single character except newline (engine‑dependent).  
+                  - Example: `a.c` matches “abc”, “a-c”, “a c”.[8][5]
+                - `\` – Escape to treat a special char as literal.  
+                  - Example: `\.` matches a literal dot in “example.com”.[9][3]
+                
+                ## Lookaround (advanced but useful)
+                
+                - `(?=...)` – Positive lookahead: must be followed by `...`, but does not consume it.  
+                  - Example: `\d+(?=px)` matches “12” in “12px”.[3]
+                - `(?!...)` – Negative lookahead: must not be followed by `...`.  
+                  - Example: `\d+(?!px)` matches “12” in “12kg” but not in “12px”.[3]
+                - `(?<=...)` / `(?<!...)` – Positive/negative lookbehind (similar but “before” the match).  
+                  - Example: `(?<=\$)\d+` matches “100” in “$100”.[3]
+                
+                ## Tiny end‑to‑end examples
+                
+                - Email-ish: `\w+@\w+\.\w+` matches basic emails like “user@mail.com”.[10]
+                - Simple IPv4: `\d{1,3}(\.\d{1,3}){3}` matches “192.168.0.1”.[11][5]
+            
+            """
+    return textwrap.dedent(text).strip()
 
 # Exemple d’ús bàsic (només si s’executa com a script)
 def class_run(path='dataset.csv'):
@@ -786,3 +836,104 @@ def class_run(path='dataset.csv'):
     print("\nExperiment drop English:")
     print(f"  Amb English  -> manual:  {drop_res['with_lang']['manual']*100:.2f}%")
     print(f"  Sense English -> manual: {drop_res['without_lang']['manual']*100:.2f}%")
+
+    # Predicció d’un sol text
+    print("\nPrediccions de textos individuals:")
+    lang = model.predict_language("This is a test sentence.")
+    print("This is a test sentence.")
+    print(lang)
+
+    lang2 = model.predict_language("Saya suka kacang-kacangan dengan chorizo dan saus ikan kod")
+    print("Saya suka kacang-kacangan dengan chorizo dan saus ikan kod")
+    print(lang2)
+
+    # Experiment matriu de confusió
+    y_pred = model.MultinomialNBpredict(X_test)
+    cm_df = model.get_confusion_matrix(y_test, y_pred)
+    # Mostrar top 5 idiomes amb més confusions
+    print("\nMatriu de confusió (top 5 idiomes):")
+    print(cm_df.head())
+
+    # Experiment classification report
+    report = model.get_classification_report(y_test, y_pred)
+    print("\nInforme de classificació:")
+    print(report)
+
+    # Experiment explicar predicció
+    explanation = model.explain_prediction("This is a test sentence.", n=2, top_k=5)
+    print("\nExplicació de la predicció:")
+    print(f"Idioma predit: {explanation['predicted_language']}")
+    print("Top n-grams que van influir en la decisió:")
+    for ng, score in explanation['top_ngrams']:
+        print(f"{ng}: {score:.4f}")
+    
+    # Experiment top n-grams per idioma
+    top_features_df = model.get_top_features_per_language(top_k=5)
+    print("\nTop n-grams per idioma:")
+    print(top_features_df.head())
+
+"""
+Electric bugaloo
+"""
+
+"""
+    def get_confusion_matrix(self, y_true= , y_pred):
+        
+        Genera una matriu de confusió com a DataFrame de pandas.
+        Dius quins idiomes es confonen més entre ells.
+        Args:
+            y_true (array-like): Etiquetes reals.
+            y_pred (array-like): Etiquetes predites.
+        Returns:
+            pd.DataFrame: Matriu de confusió amb índex i columnes etiquetades.
+
+        
+        cm = confusion_matrix(y_true, y_pred, labels=self.languages)
+        df_cm = pd.DataFrame(cm, index=self.languages, columns=self.languages)
+        return df_cm
+
+model = do_model()
+cm_df = model.get_confusion_matrix(y_test, y_pred)
+
+"""
+
+def most_confused_language(df_cm):
+    
+    confusion_per_language = df_cm.sum(axis=1) - df_cm.values.diagonal()
+    return confusion_per_language.sort_values(ascending=False)
+
+"""
+Pot ser més confos per les poques dades que tenim, si volem algo més 
+constant, creible o simplement no dependent de la població hem de normalitzar
+"""
+def confusion_rate(df_cm):
+    normalized = df_cm.div(df_cm.sum(axis=1), axis=0)
+    confusion_rate = normalized.sum(axis=1) - normalized.values.diagonal()
+    return confusion_rate.sort_values(ascending=False)
+
+
+def compare_alphas(alphas=[0.1, 1.0, 5.0], path='dataset.csv'):
+    """
+    Entrena i avalua 3 models MultinomialNB amb diferents alphas.
+    
+    Args:
+        alphas (list): Llista de 3 valors float per al paràmetre alpha.
+        path (str): Ruta al fitxer de dades.
+    """
+    results = {}
+
+    for alpha in alphas:
+        model = MultinomialNB(alpha=alpha)
+        
+        # Fixem random_state=42 per assegurar que tots els models
+        # veuen exactament el mateix conjunt de Train i Test.
+        _, X_test, _, y_test = model.do_model(path=path, test_size=0.2, random_state=42)
+        
+        metrics = model.evaluate(X_test, y_test)
+        acc = metrics['sklearn']
+        results[alpha] = acc
+        
+        print(f"🔹 Model Alpha = {alpha:<4} | Accuracy: {acc*100:.2f}%")
+
+    best_alpha = max(results, key=results.get)
+    print(f"\nMillor Alpha: {best_alpha} amb {results[best_alpha]*100:.2f}% d'encert.")
