@@ -1,6 +1,6 @@
 # Data Science Projects - TNUI
 
-This repository contains a collection of practical projects developed for the **Tècniques de Navegació i Ús de la Informació (TNUI)** course. The projects focus on Exploratory Data Analysis (EDA), Recommendation Systems, and Natural Language Processing (NLP).
+This repository contains a collection of practical projects developed for the **Taller dels Nous Usos de la Informàtica (TNUI)** course. The projects focus on Exploratory Data Analysis (EDA), Recommendation Systems, and Natural Language Processing (NLP).
 
 ## Authors
 - **Albert Marín Blasco**
